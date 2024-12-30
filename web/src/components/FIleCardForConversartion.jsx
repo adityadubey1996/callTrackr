@@ -87,7 +87,7 @@ const FileCardForConversation = ({
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className={`p-4 border rounded-lg shadow-md cursor-pointer ${
+      className={`flex-col flex-wrap gap-4 mt-4 p-4 border rounded-lg shadow-md cursor-pointer w-fit ${
         selected ? "bg-primary text-background" : "bg-grey text-white-800"
       }`}
       onClick={onClick}
@@ -116,8 +116,15 @@ const FileCardForConversation = ({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-2 m-2">
-              <MoreVertical className="h-5 w-5" />
+            <Button
+              variant="ghost"
+              className={`h-8 w-8 p-2 m-2 text-background hover:text-gray-200
+              `}
+            >
+              <MoreVertical
+                className={`h-5 w-5 text-primary
+                `}
+              />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>

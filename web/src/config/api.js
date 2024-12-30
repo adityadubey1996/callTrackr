@@ -125,7 +125,7 @@ export const getConversationDetails = async (conversationId) => {
 
 export const createConversation = async (conversationDetails) => {
   const response = await axiosInstance.post(
-    "chat/conversation",
+    "conversation",
     conversationDetails
   );
   return response.data;

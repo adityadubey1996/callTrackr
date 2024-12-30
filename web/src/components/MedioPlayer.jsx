@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 
-export default function MediaPlayer({ src, fileType }) {
+export default function MediaPlayer({ src, fileType, startTime, endTime }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
@@ -9,18 +9,26 @@ export default function MediaPlayer({ src, fileType }) {
 
   const mediaRef = useRef(null);
 
+  const convertTimeToSeconds = (timeString) => {
+    const [hours, minutes, seconds] = timeString.split(":").map(parseFloat);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
   useEffect(() => {
     const media = mediaRef.current;
 
     const updateTime = () => {
       setCurrentTime(media.currentTime);
+      console.log("Updated current time:", media.currentTime);
     };
 
     const setMediaDuration = () => {
       setDuration(media.duration);
+      console.log("Media duration set:", media.duration);
     };
 
     if (media) {
+      console.log("Adding timeupdate and loadedmetadata event listeners.");
       media.addEventListener("timeupdate", updateTime);
       media.addEventListener("loadedmetadata", setMediaDuration);
     }
@@ -29,9 +37,42 @@ export default function MediaPlayer({ src, fileType }) {
       if (media) {
         media.removeEventListener("timeupdate", updateTime);
         media.removeEventListener("loadedmetadata", setMediaDuration);
+      } else {
+        console.error(
+          "Media element not found while removing event listeners."
+        );
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (mediaRef.current && startTime) {
+      const startInSeconds = convertTimeToSeconds(startTime);
+      const endInSeconds = endTime ? convertTimeToSeconds(endTime) : null;
+
+      mediaRef.current.currentTime = startInSeconds;
+      mediaRef.current.play();
+      setIsPlaying(true);
+      const handleTimeUpdate = () => {
+        if (endInSeconds && mediaRef.current.currentTime >= endInSeconds) {
+          mediaRef.current.pause();
+          setIsPlaying(false);
+        }
+      };
+
+      mediaRef.current.addEventListener("timeupdate", handleTimeUpdate);
+
+      return () => {
+        if (mediaRef.current) {
+          mediaRef.current.removeEventListener("timeupdate", handleTimeUpdate);
+        } else {
+          console.error(
+            "Media element not found while removing playback listener."
+          );
+        }
+      };
+    }
+  }, [startTime, endTime]);
 
   const handlePlayPause = () => {
     if (mediaRef.current) {

@@ -56,13 +56,16 @@ chatQueue.process(async (job) => {
           ? match[1].trim()
           : "Could not parse AI response.";
 
-        // Parse the response from Python
-        // const aiResponse = stdout.trim();
+        const { answer, references } = aiResponse;
+        console.log("answer", answer);
+        console.log("references", references);
 
+        const responseToSend = aiResponse;
+        console.log("responseToSend", responseToSend);
         // Update chat with AI response
         await Chat.findByIdAndUpdate(chatId, {
           status: "Completed",
-          aiResponse,
+          aiResponse: responseToSend,
         });
 
         // Notify user
@@ -70,7 +73,7 @@ chatQueue.process(async (job) => {
           action: "chat_update",
           status: "Completed",
           message: "Your query has been processed successfully.",
-          data: { aiResponse, chatId },
+          data: { aiResponse: responseToSend, chatId },
         });
       }
     );

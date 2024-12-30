@@ -19,6 +19,7 @@ import { useWebSocket } from "../../hooks/useWebsocket";
 import { toast } from "@/components/hooks/use-toast";
 import FilePreviewModal from "../FileUpload/filePreviewModal";
 import { Menu } from "lucide-react";
+import json5 from "json5";
 export default function Home() {
   const {
     refreshFileList: isStaleData,
@@ -39,6 +40,27 @@ export default function Home() {
   const [previewFile, setPreviewFile] = useState(null);
   const [isFileDrawerOpen, setFileDrawerOpen] = useState(false);
   const scrollAreaRef = useRef(null);
+
+  const parseAiResponse = (aiResponse) => {
+    try {
+      const testing = json5.parse(aiResponse);
+
+      const { answer, references } = testing;
+
+      return {
+        text: answer || "No Text Found",
+        chunkReferences: references?.chunk_references || [],
+        segmentReferences: references?.segment_references || [],
+      };
+    } catch (error) {
+      console.error("Error parsing AI response:", error);
+      return {
+        text: "Error parsing the response.",
+        chunkReferences: [],
+        segmentReferences: [],
+      };
+    }
+  };
   // Fetch conversation details
   useEffect(() => {
     const fetchConversationById = async () => {
@@ -55,9 +77,11 @@ export default function Home() {
               timestamp: new Date(chat.createdAt).toLocaleTimeString(),
               chatId: chat._id,
             },
+
             chat.aiResponse && {
+              ...parseAiResponse(chat.aiResponse),
               sender: "ai",
-              text: chat.aiResponse,
+              // text: chat.aiResponse,
               timestamp: new Date(chat.updatedAt).toLocaleTimeString(),
               chatId: chat._id,
             },
@@ -67,10 +91,16 @@ export default function Home() {
 
         setConversation(response);
         setMessages(formattedMessages);
+
+        if (response.files && response.files.length > 1) {
+          throw Error("more than 1 file found");
+        }
         setFiles(response.files);
       } catch (error) {
         console.error("Error fetching conversation details:", error);
-        setIsError({ message: "Failed to load conversation details." });
+        setIsError({
+          message: `Failed to load conversation details. with error, ${error}`,
+        });
       }
     };
 
@@ -103,8 +133,9 @@ export default function Home() {
         setMessages((prevMessages) => [
           ...prevMessages,
           {
+            ...parseAiResponse(data?.aiResponse),
             sender: "ai",
-            text: data?.aiResponse || "No response received.",
+            // text: data?.aiResponse || "No response received.",
             timestamp: new Date().toLocaleTimeString(),
             chatId,
           },
@@ -133,6 +164,26 @@ export default function Home() {
       const url = await getFileViewURL({ fileName });
       console.log("url", url);
       setPreviewFile({ ...file, url: url.signedUrl });
+    } catch (e) {
+      console.error("error while fetching view URl", e);
+    }
+  };
+
+  const handlePreviewWithStartAndEndTime = async ({
+    file,
+    startTime,
+    endTime,
+  }) => {
+    // support for single file only
+    try {
+      const { fileName } = file;
+
+      if (!fileName) {
+        throw Error("fileName not found");
+      }
+      const url = await getFileViewURL({ fileName });
+      console.log("url", url);
+      setPreviewFile({ ...file, url: url.signedUrl, startTime, endTime });
     } catch (e) {
       console.error("error while fetching view URl", e);
     }
@@ -251,6 +302,16 @@ export default function Home() {
                   onEdit={
                     message.sender === "user" ? () => handleEdit(message) : null
                   }
+                  chunkReferences={message.chunkReferences}
+                  segmentReferences={message.segmentReferences}
+                  onPlaySegment={({ startTime, endTime }) => {
+                    const file = files[0];
+                    handlePreviewWithStartAndEndTime({
+                      file,
+                      startTime,
+                      endTime,
+                    });
+                  }}
                 />
               ))}
               {isLoading && <MessageLoader />}

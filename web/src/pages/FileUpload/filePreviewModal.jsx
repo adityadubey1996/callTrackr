@@ -60,6 +60,8 @@ export default function FilePreviewModal({
               <MediaPlayer
                 src={selectedFile.url}
                 fileType={selectedFile.fileType}
+                startTime={selectedFile.startTime} // Pass start time
+                endTime={selectedFile.endTime} // Pass end time
               />
             ) : (
               <p className="text-center">Select a file to preview</p>

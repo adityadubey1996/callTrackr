@@ -59,6 +59,52 @@ class AudioProcessor:
                 logging.info(f"Yielding batch {i // batch_size + 1} with size {len(parsed_batch)}.")
                 yield parsed_batch
 
+    # def chunk_transcript(self, transcript, chunk_size=100, overlap_size=50):
+    #     print(f"[CHUNK] chunk_size={chunk_size}, overlap_size={overlap_size}")
+    #     logging.info(f"chunk_size={chunk_size}, overlap_size={overlap_size}")
+    #     chunks = []
+    #     current_chunk = []
+    #     current_size = 0
+    #     overlap_segments = []  # Store segments for the next chunk's overlap
+
+    #     for segment in transcript:
+    #         # Validate segment format
+    #         if 'text' not in segment or 'start_time' not in segment or 'end_time' not in segment:
+    #             raise ValueError(f"Invalid segment format: {segment}")
+
+    #         segment_tokens = segment['text'].split(" ")
+    #         current_chunk.append(segment)
+    #         current_size += len(segment_tokens)
+
+    #         print(f"[CHUNK] Current size: {current_size} / {chunk_size}")
+    #         logging.debug(f"Current size: {current_size} / {chunk_size}")
+
+    #         # If current chunk exceeds the size, create a new chunk
+    #         if current_size >= chunk_size:
+    #             print(f"[CHUNK] Finalizing chunk at size {current_size}.")
+    #             logging.info(f"Finalizing chunk at size {current_size}.")
+    #             chunks.append({
+    #                 "text": " ".join([seg["text"] for seg in overlap_segments + current_chunk]),
+    #                 "start_time": (overlap_segments + current_chunk)[0]["start_time"],
+    #                 "end_time": current_chunk[-1]["end_time"],
+    #             })
+
+    #             # Save overlap segments for the next chunk
+    #             overlap_segments = current_chunk[-overlap_size:]
+    #             current_chunk = []  # Reset current chunk
+    #             current_size = 0
+
+    #     # Add the remaining chunk if any
+    #     if current_chunk:
+    #         chunks.append({
+    #             "text": " ".join([seg["text"] for seg in overlap_segments + current_chunk]),
+    #             "start_time": (overlap_segments + current_chunk)[0]["start_time"],
+    #             "end_time": current_chunk[-1]["end_time"],
+    #         })
+    #     print(f"[CHUNK] Created {len(chunks)} chunks.")
+    #     logging.info(f"Created {len(chunks)} chunks.")
+    #     return chunks
+
     def chunk_transcript(self, transcript, chunk_size=100, overlap_size=50):
         print(f"[CHUNK] chunk_size={chunk_size}, overlap_size={overlap_size}")
         logging.info(f"chunk_size={chunk_size}, overlap_size={overlap_size}")
@@ -83,10 +129,14 @@ class AudioProcessor:
             if current_size >= chunk_size:
                 print(f"[CHUNK] Finalizing chunk at size {current_size}.")
                 logging.info(f"Finalizing chunk at size {current_size}.")
+                all_segments = overlap_segments + current_chunk
+
+                # NEW: We store not just the combined text, but also the original segments.
                 chunks.append({
-                    "text": " ".join([seg["text"] for seg in overlap_segments + current_chunk]),
-                    "start_time": (overlap_segments + current_chunk)[0]["start_time"],
-                    "end_time": current_chunk[-1]["end_time"],
+                    "text": " ".join([seg["text"] for seg in all_segments]),
+                    "segments": all_segments,  # Keep the individual segments
+                    "start_time": all_segments[0]["start_time"],
+                    "end_time": all_segments[-1]["end_time"],
                 })
 
                 # Save overlap segments for the next chunk
@@ -96,32 +146,72 @@ class AudioProcessor:
 
         # Add the remaining chunk if any
         if current_chunk:
+            all_segments = overlap_segments + current_chunk
             chunks.append({
-                "text": " ".join([seg["text"] for seg in overlap_segments + current_chunk]),
-                "start_time": (overlap_segments + current_chunk)[0]["start_time"],
-                "end_time": current_chunk[-1]["end_time"],
+                "text": " ".join([seg["text"] for seg in all_segments]),
+                "segments": all_segments,  # Keep the individual segments
+                "start_time": all_segments[0]["start_time"],
+                "end_time": all_segments[-1]["end_time"],
             })
+
         print(f"[CHUNK] Created {len(chunks)} chunks.")
         logging.info(f"Created {len(chunks)} chunks.")
         return chunks
 
+    # def process_chunk(self, chunk):
+    #     print(f"[CHUNK] Processing chunk with text: {chunk['text'][:30]}...")
+    #     logging.info(f"Processing chunk with text: {chunk['text'][:30]}...")
+    #     text = chunk['text']
+    #     embedding = self.embedder.encode(text)
+    #     summary = self.summarizer(text, max_length=100, min_length=25, do_sample=False)[0]['summary_text']
+    #     sentiment = self.sentiment_analyzer(text)[0]
+    #     return {
+    #         "start_time": chunk['start_time'],
+    #         "end_time": chunk['end_time'],
+    #         "text": text,
+    #         "summary": summary,
+    #         "embedding": embedding.tolist(),
+    #         "sentiment": sentiment,
+    #         "processed_at": datetime.utcnow(),
+    #     }
     def process_chunk(self, chunk):
-        print(f"[CHUNK] Processing chunk with text: {chunk['text'][:30]}...")
-        logging.info(f"Processing chunk with text: {chunk['text'][:30]}...")
+        # ----- Chunk-Level Processing -----
         text = chunk['text']
-        embedding = self.embedder.encode(text)
-        summary = self.summarizer(text, max_length=100, min_length=25, do_sample=False)[0]['summary_text']
-        sentiment = self.sentiment_analyzer(text)[0]
+        chunk_embedding = self.embedder.encode(text)
+        chunk_summary = self.summarizer(text, max_length=100, min_length=25, do_sample=False)[0]['summary_text']
+        chunk_sentiment = self.sentiment_analyzer(text)[0]
+        
+        # ----- Segment-Level Processing -----
+        segment_embeddings = []
+        for seg in chunk.get("segments", []):  # <-- uses the new "segments" key
+            seg_embedding = self.embedder.encode(seg['text'])
+            seg_sentiment = self.sentiment_analyzer(seg['text'])[0]
+            segment_embeddings.append({
+                "segment_text": seg['text'],
+                "segment_start_time": seg['start_time'],
+                "segment_end_time": seg['end_time'],
+                "segment_embedding": seg_embedding.tolist(),
+                "segment_sentiment": seg_sentiment
+            })
+
+        # ----- Return Both Chunk and Segment Data -----
         return {
             "start_time": chunk['start_time'],
             "end_time": chunk['end_time'],
-            "text": text,
-            "summary": summary,
-            "embedding": embedding.tolist(),
-            "sentiment": sentiment,
+
+            # Chunk-level data
+            "chunk_text": text,                  # renamed key from "text" for clarity
+            "chunk_embedding": chunk_embedding.tolist(),
+            "summary": chunk_summary,
+            "sentiment": chunk_sentiment,
+
+            # Segment-level data
+            "segments": segment_embeddings,      # new list of segment embeddings
+
             "processed_at": datetime.utcnow(),
         }
-
+   
+   
     def process_audio_transcript(self, file_path, file_id):
         print(f"[START] Processing audio transcript for file: {file_path} with file_id: {file_id}")
         logging.info(f"Processing audio transcript for file: {file_path} with file_id: {file_id}")
@@ -142,6 +232,7 @@ class AudioProcessor:
             chunks = self.chunk_transcript(batch)
             print(f"[BATCH] Batch {batch_index} created {len(chunks)} chunks.")
             logging.info(f"Batch {batch_index} created {len(chunks)} chunks.")
+            print(f"[BATCH] Batch {batch_index} created {chunks} chunks.")
 
             # Step 3: Process each chunk
             metadata_list = []

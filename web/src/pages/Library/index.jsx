@@ -141,78 +141,89 @@ const ConversationFiles = () => {
   }, [showUploadModal, refreshAvailableFiles]);
 
   return (
-    <div className="container mx-auto p-4 ">
-      <h1 className="text-xl font-bold mb-4">Conversations</h1>
-      <Button onClick={handleAddFileClick}>Create Conversation</Button>
+    <div className="h-full w-full">
+      <div className="container mx-auto p-4 ">
+        <h1 className="text-xl font-bold mb-4">Conversations</h1>
+        <Button onClick={handleAddFileClick}>Create Conversation</Button>
 
-      {loading ? (
-        <p>Loading files...</p>
-      ) : error ? (
-        <p>{error}</p>
-      ) : (
-        <FileListForConversations
-          files={files}
-          setFiles={setFiles}
-          handlePreview={handlePreview}
-          handleStartConversation={handleStartConversation}
-        />
-      )}
+        {loading ? (
+          <p>Loading files...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          <FileListForConversations
+            files={files}
+            setFiles={setFiles}
+            handlePreview={handlePreview}
+            handleStartConversation={handleStartConversation}
+          />
+        )}
 
-      {previewFile && (
-        <FilePreviewModal
-          files={previewFile}
-          onClose={() => setPreviewFile(null)}
-        />
-      )}
+        {previewFile && (
+          <FilePreviewModal
+            files={previewFile}
+            onClose={() => setPreviewFile(null)}
+          />
+        )}
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="flex flex-col p-6 rounded-lg shadow-lg max-w-screen-lg max-h-screen">
-          <DialogHeader>
-            <DialogTitle>Select Files to Add</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-wrap gap-4 mt-4">
-            {isStaleData > 0 && (
-              <div className="mb-4 p-4 bg-yellow-100 border border-yellow-500 rounded-lg shadow-md flex justify-between items-center">
-                <span className="text-yellow-800 font-medium">
-                  New changes are available. Refresh to load the latest data.
-                </span>
-                <Button
-                  onClick={() => {
-                    isDataUpdated(0);
-                    setRefrshAvailablFiles((prev) => !prev);
-                  }}
-                  variant="outline"
-                  // className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-300"
-                >
-                  Refresh
-                </Button>
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="flex flex-col p-6 rounded-lg shadow-lg max-w-screen-lg max-h-screen">
+            <DialogHeader>
+              <DialogTitle>Select Files to Add</DialogTitle>
+            </DialogHeader>
+            <div className="flex-col flex-wrap gap-4 mt-4">
+              {isStaleData > 0 && (
+                <div className="mb-4 p-4 bg-yellow-100 border border-yellow-500 rounded-lg shadow-md flex justify-between items-center">
+                  <span className="text-yellow-800 font-medium">
+                    New changes are available. Refresh to load the latest data.
+                  </span>
+                  <Button
+                    onClick={() => {
+                      isDataUpdated(0);
+                      setRefrshAvailablFiles((prev) => !prev);
+                    }}
+                    variant="outline"
+                    // className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-300"
+                  >
+                    Refresh
+                  </Button>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-4 mt-4">
+                {availableFiles.map((file) => (
+                  <FileCardForConversation
+                    key={file._id}
+                    file={file}
+                    selected={selectedFiles.includes(file._id)}
+                    onClick={() => handleFileSelection(file._id)}
+                    onDelete={async () => await handleFileDelete(file)}
+                  />
+                ))}
               </div>
-            )}
-            {availableFiles.map((file) => (
-              <FileCardForConversation
-                key={file._id}
-                file={file}
-                selected={selectedFiles.includes(file._id)}
-                onClick={() => handleFileSelection(file._id)}
-                onDelete={async () => await handleFileDelete(file)}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddSelectedFiles} variant="primary">
+                Add Selected Files
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowUploadModal(true)}
+              >
+                Add File
+              </Button>
+            </div>
+            {showUploadModal && (
+              <FileUploadModal
+                open={showUploadModal}
+                onOpenChange={setShowUploadModal}
               />
-            ))}
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button onClick={handleAddSelectedFiles} variant="primary">
-              Add Selected Files
-            </Button>
-            <Button onClick={() => setShowUploadModal(true)}>Add File</Button>
-          </div>
-          {showUploadModal && (
-            <FileUploadModal
-              open={showUploadModal}
-              onOpenChange={setShowUploadModal}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
