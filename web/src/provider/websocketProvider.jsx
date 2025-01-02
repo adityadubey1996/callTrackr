@@ -8,6 +8,9 @@ const WebSocketProvider = ({ children, token }) => {
   const [refreshFileList, setRefreshFileList] = useState(0);
   const [connectionError, setConnectionError] = useState(null);
   const [chatResponse, setChatResponse] = useState(null);
+  const [metricSuggestion, setMetricSuggestionsResponse] = useState(null);
+  const [metricProcessing, setMetricProcessing] = useState(null);
+
   useEffect(() => {
     if (!token) return;
 
@@ -27,7 +30,6 @@ const WebSocketProvider = ({ children, token }) => {
         alert("Your session has expired. Please log in again.");
         // Add a callback or event to prompt the user to log in
       }
-      console.log("message received", data);
       if (data.action) {
         const { status } = data;
 
@@ -80,10 +82,16 @@ const WebSocketProvider = ({ children, token }) => {
                 type: "destructuve",
               });
             }
-
+            break;
           case "chat_update":
             setChatResponse({ ...data });
-
+            break;
+          case "metric_suggestion":
+            setMetricSuggestionsResponse({ ...data });
+            break;
+          case "metric_processing":
+            setMetricProcessing({ ...data });
+            break;
           default:
             break;
         }
@@ -127,6 +135,10 @@ const WebSocketProvider = ({ children, token }) => {
         setRefreshFileList,
         connectionError,
         chatResponse,
+        metricSuggestion,
+        metricProcessing,
+        setMetricSuggestionsResponse,
+        setMetricProcessing,
       }}
     >
       {children}

@@ -15,6 +15,9 @@ from datetime import datetime
 from python_services.audio_service import AudioProcessor
 from python_services.rag_testing import RAGProcessor
 from utils_python.connect_db import connectDB
+from python_services.validate_metric import validate_metrics_list
+from python_services.metric_suggestions import MetricSuggester
+from python_services.metric_process import MetricProcessor
 # from config import Config
 import logging
 
@@ -27,7 +30,9 @@ logging.basicConfig(
 
 
 load_dotenv()
+# python3 /Users/adityadubey/calltrackr/server/main.py --chunking /Users/adityadubey/calltrackr/server/transcriptions/testing_sales_call_20241231_222320.srt --fileId 6774212334d030b19ef2c385
 
+# python3 /Users/adityadubey/calltrackr/server/main.py --metric_verify '{"name": "How many time the pricing was mentioned?", "type": "Yes/No"}'
 class MainProcessor:
     def __init__(self):
         logging.info("Initializing MainProcessor.")
@@ -37,7 +42,8 @@ class MainProcessor:
         self.parameter_service = ParameterService()
         self.summary_service = SummaryService(api_key=self.groq_api_key)
         self.db_client = connectDB()["test"]
-
+        self.metric_suggester = MetricSuggester(db=self.db_client)
+        self.metric_processor = MetricProcessor(db=self.db_client)
     def download_file(self, file_url):
         downloaded_file = self.downloader.download_file(file_url)
         print(f"Downloaded file to: {downloaded_file}")
@@ -128,6 +134,31 @@ class MainProcessor:
         print(f"Audit report saved to: {json_output}")
         return json_output
 
+    def create_metric_suggestions(self, file_id):
+        """
+        Generate metric suggestions for a given file ID.
+        """
+        try:
+            suggestions = self.metric_suggester.suggest_metrics(file_id)
+            # Print the result with a reference marker for stdout.match
+            print(f"METRIC_SUGGESTIONS: {json.dumps(suggestions, indent=4)}")
+        except Exception as e:
+            error_result = {"error": str(e)}
+            print(f"METRIC_SUGGESTIONS: {json.dumps(error_result, indent=4)}")
+
+    def process_metrics(self, fileId, metric):
+        """
+        Generate metric suggestions for a given file ID.
+        """
+        try:
+            suggestions = self.metric_processor.process_metric(file_ids = fileId, metric=metric)
+            # Print the result with a reference marker for stdout.match
+            print(f"PROCESS_METRIC_RESULT: {json.dumps(suggestions, indent=4)}")
+        except Exception as e:
+            error_result = {"error": str(e)}
+            print(f"PROCESS_METRIC_ERROR: {json.dumps(error_result, indent=4)}")
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process and analyze audio/video files.")
@@ -141,6 +172,9 @@ if __name__ == "__main__":
     parser.add_argument("--parameters", action="store_true", help="Extract audit parameters.")
     parser.add_argument("--summary", type=str, help="Generate a summary from a transcript file.")
     parser.add_argument("--audit", type=str, help="Generate an audit report from a transcript.")
+    parser.add_argument("--metric_verify", type=str, help="validate the metric and data type from llm")
+    parser.add_argument("--create_metric_suggestions", type=str, help="Generate metric suggestions for a file.")
+    parser.add_argument("--process_metric", type=str, help="Metric processing for a file")
 
     args = parser.parse_args()
     processor = MainProcessor()
@@ -176,6 +210,48 @@ if __name__ == "__main__":
             audit_parameters = processor.get_parameters()
             summary = processor.generate_summary(transcript, audit_parameters)
             processor.generate_audit_report(audit_parameters, summary, args.audit)
+        
+        if args.metric_verify:
+         
 
+            try:
+                metric = json.loads(args.metric_verify)
+                print('metric', metric)
+                result = validate_metrics_list(metric)
+                # Print the result with a reference marker
+                print(f"VALIDATION_RESULT: {json.dumps(result, indent=4)}")
+            except json.JSONDecodeError:
+                error_result = {"valid": False, "message": "Invalid JSON input."}
+                print(f"VALIDATION_RESULT: {json.dumps(error_result, indent=4)}")
+            except Exception as e:
+                error_result = {"valid": False, "message": str(e)}
+                print(f"VALIDATION_RESULT: {json.dumps(error_result, indent=4)}")
+
+        if args.create_metric_suggestions:
+            processor.create_metric_suggestions(args.create_metric_suggestions)
+
+        if args.process_metric:
+            try:
+                file_ids = json.loads(args.fileId)  # Parse file IDs as a list of strings
+                metric = json.loads(args.process_metric)
+                  # Ensure file_ids is a list
+                if not isinstance(file_ids, list) or not all(isinstance(fid, str) for fid in file_ids):
+                    raise ValueError("file_ids must be a list of strings.")
+
+                # Ensure metric is a dictionary with required keys
+                if not isinstance(metric, dict) or not all(k in metric for k in ("id", "name", "type")):
+                    raise ValueError("metric must be a dictionary with 'id', 'name', and 'type' keys.")
+                
+
+                print('metric',metric)
+                print('file_ids',file_ids)
+                # raise ValueError('testing')
+                result = processor.process_metrics(fileId=file_ids, metric=metric)
+            except Exception as e:
+                error_result = {"valid": False, "message": str(e)}
+                print(f"PROCESS_METRIC: {json.dumps(error_result, indent=4)}")
+
+
+            
     except Exception as e:
         print(f"An error occurred: {e}")

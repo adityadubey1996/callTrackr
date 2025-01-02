@@ -190,7 +190,6 @@ export default function Home() {
   };
 
   const openFilePreview = (file) => {
-    console.log(`Opening preview for ${file}`);
     handlePreview(file);
   };
 

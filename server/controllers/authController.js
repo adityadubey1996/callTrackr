@@ -24,7 +24,7 @@ const google = async (req, res) => {
     }
 
     const jwtToken = jwt.sign({ id: user._id, email }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "6h",
     });
 
     res.json({ token: jwtToken, userId: user._id });

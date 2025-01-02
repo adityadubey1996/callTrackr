@@ -28,6 +28,21 @@ const generateViewSignedUrl = async (req, res) => {
   }
 };
 
+const getFileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("req.params getFieById", req.params);
+    const file = await File.findById(id);
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.status(200).json({ ...file.toObject() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const deleteFile = async (req, res) => {
   try {
     const { id } = req.params;
@@ -192,4 +207,5 @@ module.exports = {
   listFiles,
   fetchFilesByUser,
   queueTranscription,
+  getFileById,
 };

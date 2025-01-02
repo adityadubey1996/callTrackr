@@ -90,6 +90,12 @@ export const deleteFile = async (fileId) => {
 };
 
 // Delete a file and its metadata
+export const getFileById = async (fileId) => {
+  const response = await axiosInstance.get(`/files/${fileId}`);
+  return response.data;
+};
+
+// Delete a file and its metadata
 export const getFileList = async () => {
   const response = await axiosInstance.get(`/files/getFileList`);
   return response.data;
@@ -155,5 +161,58 @@ export const getSuggestionsForChat = async ({ conversationId }) => {
   const response = await axiosInstance.post(`conversation/get-suggestion`, {
     conversationId: conversationId,
   });
+  return response.data;
+};
+
+export const verifyMetric = async (metric) => {
+  const response = await axiosInstance.post(`metrics/validate`, {
+    metrics: metric,
+  });
+  return response.data;
+};
+
+export const processMetric = async ({ fileIds, metrics }) => {
+  const response = await axiosInstance.post(`metrics/process-metrics`, {
+    metrics,
+    fileIds,
+  });
+  return response.data;
+};
+
+export const getMetricSuggestions = async ({ fileId }) => {
+  const response = await axiosInstance.post(`metrics/suggest-metrics`, {
+    fileId,
+  });
+  return response.data;
+};
+
+export const createMetricWithResult = async ({ metrics, fileIds, results }) => {
+  const response = await axiosInstance.post(`metrics-result/create`, {
+    metrics,
+    fileIds,
+    results,
+  });
+  return response.data;
+};
+
+export const getMetricListById = async (metricId) => {
+  const response = await axiosInstance.get(`metrics-result/${metricId}`, {
+    fileId,
+  });
+  return response.data;
+};
+
+export const getMetricResultByUserIdAndMetricListId = async ({
+  userId,
+  metricListId,
+}) => {
+  const response = await axiosInstance.get(
+    `metrics-result/${userId}/${metricListId}`
+  );
+  return response.data;
+};
+
+export const getMetricListsByUserId = async () => {
+  const response = await axiosInstance.get(`metrics-result/metric-lists`);
   return response.data;
 };

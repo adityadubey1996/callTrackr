@@ -21,6 +21,7 @@ const FileCardForConversation = ({
   selected = false,
   onClick,
   onDelete,
+  doNotShowFileOption = false,
 }) => {
   const {
     fileName,
@@ -114,31 +115,33 @@ const FileCardForConversation = ({
             />
           )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className={`h-8 w-8 p-2 m-2 text-background hover:text-gray-200
+        {!doNotShowFileOption && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`h-8 w-8 p-2 m-2 text-background hover:text-gray-200
               `}
-            >
-              <MoreVertical
-                className={`h-5 w-5 text-primary
+              >
+                <MoreVertical
+                  className={`h-5 w-5 text-primary
                 `}
-              />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => handlePreview(file)}>
-              Preview File
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(file)}>
-              delete File
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleConversationReady(file)}>
-              Process For Conversation
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handlePreview(file)}>
+                Preview File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDelete(file)}>
+                delete File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleConversationReady(file)}>
+                Process For Conversation
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
       <div className="mt-2 text-sm">
         <p className="truncate">

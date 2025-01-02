@@ -13,6 +13,8 @@ const fileRoutes = require("./routes/fileRoutes");
 const transcriptionLogRoutes = require("./routes/transcriptionLogRoutes");
 const conversationRoutes = require("./routes/conversationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const metricRoutes = require("./routes/metricRoutes");
+const metricResultRoutes = require("./routes/metricResultRoutes");
 connectDB();
 
 // Call the CORS update function during server startup
@@ -49,6 +51,9 @@ app.use("/files", fileRoutes);
 app.use("/logs", transcriptionLogRoutes);
 app.use("/conversation", conversationRoutes);
 app.use("/chat", chatRoutes);
+app.use("/metrics", metricRoutes);
+app.use("/metrics-result", metricResultRoutes);
+
 // Add transcription log routes
 app.get("/", (req, res) => {
   res.send("Server is running...");

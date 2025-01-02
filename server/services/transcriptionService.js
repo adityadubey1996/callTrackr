@@ -163,12 +163,12 @@ transcriptionQueue.process(async (job) => {
         });
 
         // Enqueue the file for embedding processing
-        embeddingQueue.add({
-          fileId: fileDetails._id,
-          filePath: srtFilePath,
-          userId: fileDetails.userId,
-          fileName: fileDetails.fileName,
-        });
+        // embeddingQueue.add({
+        //   fileId: fileDetails._id,
+        //   filePath: srtFilePath,
+        //   userId: fileDetails.userId,
+        //   fileName: fileDetails.fileName,
+        // });
       } else {
         console.error(`Transcription failed for file: ${fileDetails.fileName}`);
         await File.findByIdAndUpdate(fileDetails._id, {
