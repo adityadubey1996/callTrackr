@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { FileCardForUploadModal } from "@/components/FileCardForUploadModal";
 import { FileUploadModal } from "@/components/FileUploadModal";
 import { useWebSocket } from "../../hooks/useWebsocket";
+import { toast } from "@/components/hooks/use-toast";
 
 const ConversationFiles = () => {
   const { refreshFileList: isStaleData, setRefreshFileList: isDataUpdated } =
@@ -52,6 +53,11 @@ const ConversationFiles = () => {
       setAvailableFiles(response.files || []);
     } catch (err) {
       console.error("Error loading available files:", err);
+      toast({
+        title: "Error",
+        variant: "destructive",
+        description: err.message,
+      });
     }
   };
 
@@ -61,8 +67,13 @@ const ConversationFiles = () => {
       const fileIds = [...selectedFiles];
       const title = new Date().toString();
       const response = await createConversation({ title, fileIds });
-    } catch (e) {
-      console.error("e", e);
+    } catch (err) {
+      console.error("error", err);
+      toast({
+        title: "Error",
+        variant: "destructive",
+        description: err.message,
+      });
     }
     setShowModal(false);
   };

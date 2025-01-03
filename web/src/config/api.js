@@ -195,6 +195,22 @@ export const createMetricWithResult = async ({ metrics, fileIds, results }) => {
   return response.data;
 };
 
+export const createMetricWithResultAndMetricId = async ({
+  metricListId,
+
+  results,
+}) => {
+  const response = await axiosInstance.post(
+    `metrics-result/create-using-metric`,
+    {
+      metricListId,
+
+      results,
+    }
+  );
+  return response.data;
+};
+
 export const getMetricListById = async (metricId) => {
   const response = await axiosInstance.get(`metrics-result/${metricId}`, {
     fileId,
@@ -214,5 +230,19 @@ export const getMetricResultByUserIdAndMetricListId = async ({
 
 export const getMetricListsByUserId = async () => {
   const response = await axiosInstance.get(`metrics-result/metric-lists`);
+  return response.data;
+};
+
+export const getMetricResultsByUserId = async () => {
+  const response = await axiosInstance.get(`metrics-result`);
+  return response.data;
+};
+
+export const updateMetric = async ({ metrics, fileIds, metricId }) => {
+  const response = await axiosInstance.post(`metrics-result/update-metric`, {
+    metrics,
+    fileIds,
+    metricId,
+  });
   return response.data;
 };

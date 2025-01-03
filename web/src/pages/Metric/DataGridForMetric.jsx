@@ -112,19 +112,36 @@ const MetricsDataTable = ({ metricProcessionResult }) => {
   });
 
   const handlePreview = async (fileId, startTime, endTime) => {
-    // support for single file only
     try {
+      // Validate the required parameters
+      if (!fileId || !startTime || !endTime) {
+        throw new Error(
+          "fileId, startTime, and endTime are required parameters."
+        );
+      }
+
       const file = await getFileById(fileId);
+
+      if (!file) {
+        throw new Error(`File with ID ${fileId} not found.`);
+      }
+
       const { fileName } = file;
 
       if (!fileName) {
-        throw Error("fileName not found");
+        throw new Error("File name not found for the provided file.");
       }
+
       const url = await getFileViewURL({ fileName });
-      console.log("url", url);
+
+      if (!url || !url.signedUrl) {
+        throw new Error("Failed to fetch signed URL for the file.");
+      }
+
       setPreviewFile({ ...file, url: url.signedUrl, startTime, endTime });
-    } catch (e) {
-      console.error("error while fetching view URl", e);
+    } catch (error) {
+      console.error("Error in handlePreview:", error.message);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -172,7 +189,7 @@ const MetricsDataTable = ({ metricProcessionResult }) => {
       </Table>
       {selectedMetric && (
         <Dialog open={openModal} onOpenChange={setOpenModal}>
-          <DialogContent className="max-w-screen-lg w-full">
+          <DialogContent className="max-w-screen-lg w-full h-full">
             <DialogHeader>
               <DialogTitle>{selectedMetric.name}</DialogTitle>
             </DialogHeader>
@@ -183,78 +200,82 @@ const MetricsDataTable = ({ metricProcessionResult }) => {
               </div>
             ) : (
               <Accordion type="single" collapsible>
-                {selectedMetric.context &&
-                  selectedMetric.context.map((context, index) => (
-                    <AccordionItem key={index} value={`context-${index}`}>
-                      <AccordionTrigger>
-                        Start: {context.start_time} | End: {context.end_time}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4">
-                          {/* Text Content */}
-                          <div>
-                            <h4 className="text-lg font-semibold">Text:</h4>
-                            <p className="text-white-700 bg-gray-700 p-4 rounded-md">
-                              {context?.text}
-                            </p>
-                          </div>
+                <div style={{ height: "60vh" }} className="overflow-y-auto">
+                  {selectedMetric.context &&
+                    selectedMetric.context.map((context, index) => (
+                      <AccordionItem key={index} value={`context-${index}`}>
+                        <AccordionTrigger>
+                          Start: {context.startTime} | End: {context.endTime}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4">
+                            {/* Text Content */}
+                            <div>
+                              <h4 className="text-lg font-semibold">Text:</h4>
+                              <p className="text-white-700 bg-gray-700 p-4 rounded-md">
+                                {context?.text}
+                              </p>
+                            </div>
 
-                          {/* Keywords */}
-                          <div>
-                            <h4 className="text-lg font-semibold">Keywords:</h4>
-                            <ul className="list-disc pl-6 bg-gray-700">
-                              {context?.keywords?.map((keywordObj, idx) => (
-                                <li key={idx} className="text-white-700">
-                                  <span className="font-semibold">
-                                    {keywordObj.keyword}
-                                  </span>
-                                  :{" "}
-                                  <span className="text-sm text-white-500">
-                                    {keywordObj.score}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                            {/* Keywords */}
+                            <div>
+                              <h4 className="text-lg font-semibold">
+                                Keywords:
+                              </h4>
+                              <ul className="list-disc pl-6 bg-gray-700">
+                                {context?.keywords?.map((keywordObj, idx) => (
+                                  <li key={idx} className="text-white-700">
+                                    <span className="font-semibold">
+                                      {keywordObj.keyword}
+                                    </span>
+                                    :{" "}
+                                    <span className="text-sm text-white-500">
+                                      {keywordObj.score}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
 
-                          {/* Sentiment */}
-                          <div>
-                            <h4 className="text-lg font-semibold ">
-                              Sentiment:
-                            </h4>
-                            <p
-                              className={`p-2 rounded-md ${
-                                context?.sentiment?.label === "POSITIVE"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {context?.sentiment?.label} (Score:{" "}
-                              {context?.sentiment?.score.toFixed(2)})
-                            </p>
-                          </div>
+                            {/* Sentiment */}
+                            <div>
+                              <h4 className="text-lg font-semibold ">
+                                Sentiment:
+                              </h4>
+                              <p
+                                className={`p-2 rounded-md ${
+                                  context?.sentiment?.label === "POSITIVE"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {context?.sentiment?.label} (Score:{" "}
+                                {context?.sentiment?.score.toFixed(2)})
+                              </p>
+                            </div>
 
-                          {/* File Preview Button */}
-                          <div>
-                            <Button
-                              variant="link"
-                              className="mt-2"
-                              onClick={() => {
-                                alert(`Previewing file: ${context.file_id}`);
-                                handlePreview(
-                                  context.file_id,
-                                  context.start_time,
-                                  context.end_time
-                                );
-                              }}
-                            >
-                              Preview File
-                            </Button>
+                            {/* File Preview Button */}
+                            <div>
+                              <Button
+                                variant="link"
+                                className="mt-2"
+                                onClick={() => {
+                                  alert(`Previewing file: ${context.file_id}`);
+                                  handlePreview(
+                                    context.file_id,
+                                    context.startTime,
+                                    context.endTime
+                                  );
+                                }}
+                              >
+                                Preview File
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                </div>
               </Accordion>
             )}
             <DialogFooter>

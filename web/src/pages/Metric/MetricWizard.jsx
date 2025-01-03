@@ -37,7 +37,7 @@ const steps = [
   "Final Report",
 ];
 
-export default function MetricsWizard() {
+export default function MetricsWizard({ setCreateWizard }) {
   const {
     refreshFileList: isStaleData,
     setRefreshFileList: isDataUpdated,
@@ -56,7 +56,6 @@ export default function MetricsWizard() {
   const [onFinishLoading, setOnFininshLoading] = useState(false);
 
   const onFinishClick = async () => {
-    console.log("onFinishClick");
     try {
       setOnFininshLoading(true);
       const response = await createMetricWithResult({
@@ -65,9 +64,11 @@ export default function MetricsWizard() {
         results: metricProcessionResult,
       });
       console.log("response", response);
-      toast({});
+      toast({ description: "Successfully saved metric with reuslt" });
+      setCreateWizard(false);
     } catch (e) {
-      toast({});
+      console.error("error while creating metric result", e);
+      toast({ description: "Error", variant: "destructive" });
     } finally {
       setOnFininshLoading(false);
     }
@@ -257,8 +258,6 @@ export default function MetricsWizard() {
         <Button onClick={prevStep} disabled={currentStep === 0}>
           Previous
         </Button>
-        {console.log("currentStep", currentStep)}
-        {console.log("custeps.lengthrrentStep", steps.length)}
 
         <Button
           onClick={async () => {
@@ -266,7 +265,6 @@ export default function MetricsWizard() {
               ? await onFinishClick()
               : nextStep();
           }}
-          // disabled={currentStep === steps.length - 1}
         >
           {currentStep === steps.length - 1 ? "Finish" : "Next"}
         </Button>

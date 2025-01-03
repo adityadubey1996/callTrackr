@@ -3,6 +3,7 @@ const {
   getMetricSuggestions,
   processMetrics,
   validateMetric,
+  updateMetricList,
 } = require("../controllers/metricController");
 const authenticate = require("../middlewares/authMiddleware");
 

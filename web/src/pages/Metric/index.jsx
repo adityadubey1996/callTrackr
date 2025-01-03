@@ -25,6 +25,7 @@ import { FileUploadModal } from "@/components/FileUploadModal";
 import { useWebSocket } from "../../hooks/useWebsocket";
 import MetricsWizard from "./MetricWizard";
 import MetricListView from "./MetricList";
+import EditMetricDialog from "./EditMetricDialog";
 
 const MetricList = () => {
   const {
@@ -45,78 +46,11 @@ const MetricList = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(null);
   const [createWizard, setCreateWizard] = useState(null);
-  const handleFileSelection = (fileId) => {
-    setSelectedFiles((prev) =>
-      prev.includes(fileId)
-        ? prev.filter((id) => id !== fileId)
-        : [...prev, fileId]
-    );
-  };
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedMetricList, setSelectedMetricList] = useState(null);
 
   const handleAddFileClick = async () => {
     setCreateWizard(true);
-    try {
-    } catch (err) {
-      console.error("Error loading available files:", err);
-    }
-  };
-
-  const handleAddSelectedFiles = async () => {
-    console.log("Selected files:", selectedFiles);
-    try {
-      const fileIds = [...selectedFiles];
-      const title = new Date().toString();
-      const response = await createConversation({ title, fileIds });
-    } catch (e) {
-      console.error("e", e);
-    }
-    setCreateWizard(false);
-  };
-
-  const handleFileDelete = async (file) => {
-    try {
-      const { fileName, _id: id } = file;
-      await deleteFile(id);
-      setAvailableFiles((prev) => {
-        const filteredItem = prev.filter((file) => file.fileName !== fileName);
-
-        return filteredItem;
-      });
-    } catch (e) {
-      console.error("error while delteing file", e);
-    }
-  };
-
-  const handlePreview = async (conversation) => {
-    // support for multiple file is provided
-    try {
-      const { fileIds } = conversation;
-      if (!(fileIds && Array.isArray(fileIds) && fileIds.length > 0)) {
-      }
-      const fileListWithSignedUrl = await Promise.all(
-        fileIds.map(async (file) => {
-          const { fileName } = file;
-
-          if (!fileName) {
-            throw Error("fileName not found");
-          }
-          const url = await getFileViewURL({ fileName });
-
-          return { ...file, url: url.signedUrl };
-        })
-      );
-
-      console.log("fileListWithSignedUrl", fileListWithSignedUrl);
-
-      setPreviewFile([...fileListWithSignedUrl]);
-    } catch (e) {
-      console.error("error while fetching view URl", e);
-    }
-  };
-
-  const handleStartConversation = (conversation) => {
-    console.log("conversation Details", conversation);
-    navigate(`/conversation/${conversation._id}`);
   };
 
   useEffect(() => {
@@ -134,7 +68,7 @@ const MetricList = () => {
       }
     };
     fetchMetricDetails();
-  }, [showModal, showUploadModal]);
+  }, [showModal, showUploadModal, editModalOpen, createWizard]);
 
   useEffect(() => {
     const getFiles = async () => {
@@ -146,7 +80,12 @@ const MetricList = () => {
       }
     };
     getFiles();
-  }, [showUploadModal, refreshAvailableFiles]);
+  }, [showUploadModal, refreshAvailableFiles, createWizard]);
+
+  const handleEditMetricList = (metricList) => {
+    setSelectedMetricList(metricList);
+    setEditModalOpen(true);
+  };
 
   return (
     <div className="h-full w-full">
@@ -159,7 +98,10 @@ const MetricList = () => {
         ) : error ? (
           <p>{error}</p>
         ) : (
-          <MetricListView metricLists={metricLists} />
+          <MetricListView
+            metricLists={metricLists}
+            onEditMetricList={handleEditMetricList}
+          />
         )}
 
         {previewFile && (
@@ -172,68 +114,16 @@ const MetricList = () => {
         <Dialog open={createWizard} onOpenChange={setCreateWizard}>
           <DialogContent className="flex flex-col p-6 rounded-lg shadow-lg max-w-screen-lg max-h-screen-lg">
             <main className="container mx-auto">
-              <MetricsWizard />
+              <MetricsWizard setCreateWizard={setCreateWizard} />
             </main>
           </DialogContent>
         </Dialog>
 
-        <Dialog open={showModal} onOpenChange={setShowModal}>
-          <DialogContent className="flex flex-col p-6 rounded-lg shadow-lg max-w-screen-lg max-h-screen">
-            <DialogHeader>
-              <DialogTitle>Select Files to Add</DialogTitle>
-            </DialogHeader>
-            <div className="flex-col flex-wrap gap-4 mt-4">
-              {isStaleData > 0 && (
-                <div className="mb-4 p-4 bg-yellow-100 border border-yellow-500 rounded-lg shadow-md flex justify-between items-center">
-                  <span className="text-yellow-800 font-medium">
-                    New changes are available. Refresh to load the latest data.
-                  </span>
-                  <Button
-                    onClick={() => {
-                      isDataUpdated(0);
-                      setRefrshAvailablFiles((prev) => !prev);
-                    }}
-                    variant="outline"
-                    // className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-300"
-                  >
-                    Refresh
-                  </Button>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-4 mt-4">
-                {availableFiles.map((file) => (
-                  <FileCardForConversation
-                    key={file._id}
-                    file={file}
-                    selected={selectedFiles.includes(file._id)}
-                    onClick={() => handleFileSelection(file._id)}
-                    onDelete={async () => await handleFileDelete(file)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddSelectedFiles} variant="primary">
-                Add Selected Files
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowUploadModal(true)}
-              >
-                Add File
-              </Button>
-            </div>
-            {showUploadModal && (
-              <FileUploadModal
-                open={showUploadModal}
-                onOpenChange={setShowUploadModal}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <EditMetricDialog
+          metricList={selectedMetricList}
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+        />
       </div>
     </div>
   );

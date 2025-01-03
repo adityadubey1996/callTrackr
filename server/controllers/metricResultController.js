@@ -43,6 +43,40 @@ const createMetricList = async (req, res) => {
   }
 };
 
+const updateMetricList = async (req, res) => {
+  try {
+    const { metrics, metricId: id } = req.body;
+    const { id: userId } = req.user;
+
+    if (!id || !metrics) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Find the MetricList by ID
+    const metricList = await MetricList.findOne({ id, userId });
+
+    if (!metricList) {
+      return res.status(404).json({ message: "MetricList not found." });
+    }
+
+    // Delete associated MetricResults
+    await MetricResult.deleteMany({ metricListId: metricList.id });
+
+    // Update the MetricList with new metrics and fileIds
+    metricList.metrics = metrics;
+
+    await metricList.save();
+
+    res.status(200).json({
+      message: "MetricList updated successfully.",
+      metricList,
+    });
+  } catch (error) {
+    console.error("Error updating MetricList:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Add results to an existing MetricList
 const addResultsToMetricList = async (req, res) => {
   try {
@@ -160,10 +194,90 @@ const getMetricResultsByUserIdAndMetricListId = async (req, res) => {
   }
 };
 
+const getMetricResultsByUserId = async (req, res) => {
+  try {
+    const { id: userId } = req.user;
+    // Verify if MetricLists exist for the userId
+    const metricLists = await MetricList.find({ userId });
+
+    if (!metricLists || metricLists.length === 0) {
+      return res.status(404).json({
+        message: "No MetricLists found for this userId.",
+      });
+    }
+
+    // Extract all MetricList IDs
+    const metricListIds = metricLists.map((metricList) => metricList.id);
+
+    // Fetch all MetricResults associated with the user's MetricLists
+    const metricResults = await MetricResult.find({
+      metricListId: { $in: metricListIds },
+    });
+
+    if (!metricResults || metricResults.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No MetricResults found for this user." });
+    }
+
+    res.status(200).json(metricResults);
+  } catch (error) {
+    console.error("Error fetching MetricResults by userId:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const createMetricReusltByMetric = async (req, res) => {
+  try {
+    const { metricListId, results } = req.body;
+    const { id: userId } = req.user;
+    // Validation
+    if (!metricListId || !results || !Array.isArray(results)) {
+      return res
+        .status(400)
+        .json({ message: "metricListId, fileId, and results are required." });
+    }
+
+    // Fetch the predefined metrics
+    const metricList = await MetricList.findOne({ id: metricListId });
+
+    if (!metricList) {
+      return res
+        .status(404)
+        .json({ message: "MetricList not found for the given ID." });
+    }
+
+    if (results && results.length > 0) {
+      for (const result of results) {
+        const metricResult = new MetricResult({
+          userId,
+          metricListId: metricList.id,
+          metricId: result.id,
+          ...result,
+        });
+        await metricResult.save();
+      }
+    }
+
+    res.status(201).json({
+      message: "MetricResults created successfully",
+      metricResults: [],
+    });
+  } catch (error) {
+    console.error("Error creating metric results:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
 module.exports = {
   getMetricListById,
   addResultsToMetricList,
   createMetricList,
   getMetricListsByUserId,
   getMetricResultsByUserIdAndMetricListId,
+  updateMetricList,
+  getMetricResultsByUserId,
+  createMetricReusltByMetric,
 };

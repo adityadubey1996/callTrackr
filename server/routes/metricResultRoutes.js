@@ -6,6 +6,9 @@ const {
   createMetricList,
   getMetricResultsByUserIdAndMetricListId,
   getMetricListsByUserId,
+  updateMetricList,
+  getMetricResultsByUserId,
+  createMetricReusltByMetric,
 } = require("../controllers/metricResultController");
 const authenticate = require("../middlewares/authMiddleware");
 
@@ -14,8 +17,14 @@ const router = express.Router();
 // Route for creating a metric with or without results
 router.post("/create", authenticate, createMetricList);
 
+router.post("/create-using-metric", authenticate, createMetricReusltByMetric);
+
+router.post("/update-metric", authenticate, updateMetricList);
+
 // Route for adding results to an existing MetricList
 router.post("/add-results", authenticate, addResultsToMetricList);
+
+router.get("/", authenticate, getMetricResultsByUserId);
 
 router.get("/metric-lists", authenticate, getMetricListsByUserId);
 

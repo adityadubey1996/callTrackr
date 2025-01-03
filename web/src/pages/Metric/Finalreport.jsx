@@ -43,7 +43,6 @@ export default function FinalReport({
         fileMetrics,
       };
     });
-  console.log("fileResults", fileResults);
   return (
     <div className="space-y-6">
       {/* Accordion for Final Report Table */}

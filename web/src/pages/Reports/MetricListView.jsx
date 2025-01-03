@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Accordion,
   AccordionItem,
@@ -18,8 +18,19 @@ import {
 import { Button } from "@/components/components/ui/button";
 import useMediaQuery from "../../hooks/useMediaQuery"; // Custom hook to detect screen size
 
-const MetricListView = ({ metricLists, onEditMetricList }) => {
+const MetricListView = ({
+  metricLists,
+  onEditMetricList,
+  setSelectedMetricList,
+  selectedMetricList,
+}) => {
   const isMobile = useMediaQuery({ maxWidth: 768 }); // Detect mobile view
+
+  const handleSelect = (metricListId) => {
+    setSelectedMetricList((prev) =>
+      prev === metricListId ? null : metricListId
+    ); // Toggle selection
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -33,11 +44,16 @@ const MetricListView = ({ metricLists, onEditMetricList }) => {
               {metricLists.map((metricList) => (
                 <div
                   key={metricList.id}
-                  className="p-4 border rounded-lg shadow-md bg-gray-800 hover:bg-gray-700"
+                  className={`p-4 border rounded-lg shadow-md ${
+                    selectedMetricList === metricList.id
+                      ? "bg-blue-800"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                  onClick={() => handleSelect(metricList.id)}
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-lg font-semibold text-white">
+                      <h3 className=" font-semibold text-white">
                         Metric List ID: {metricList.id}
                       </h3>
                       <p className="text-sm text-gray-400">
@@ -50,6 +66,7 @@ const MetricListView = ({ metricLists, onEditMetricList }) => {
                       size="sm"
                       className="text-gray-300 hover:text-white"
                       onClick={() => onEditMetricList(metricList)}
+                      disabled={selectedMetricList !== metricList.id}
                     >
                       Edit
                     </Button>
@@ -73,7 +90,14 @@ const MetricListView = ({ metricLists, onEditMetricList }) => {
             <Accordion type="single" collapsible>
               {metricLists.map((metricList) => (
                 <AccordionItem key={metricList.id} value={metricList.id}>
-                  <AccordionTrigger className="p-4 rounded-lg shadow-md bg-gray-800 hover:bg-gray-700">
+                  <AccordionTrigger
+                    className={`p-4 rounded-lg shadow-md ${
+                      selectedMetricList === metricList.id
+                        ? "bg-blue-800"
+                        : "bg-gray-800 hover:bg-gray-700"
+                    }`}
+                    onClick={() => handleSelect(metricList.id)}
+                  >
                     <div className="grid grid-cols-3 gap-4 items-center">
                       <div>
                         <h3 className="text-lg font-semibold text-white">
@@ -95,6 +119,7 @@ const MetricListView = ({ metricLists, onEditMetricList }) => {
                           size="sm"
                           className="ml-4 text-gray-300 hover:text-white"
                           onClick={() => onEditMetricList(metricList)}
+                          disabled={selectedMetricList !== metricList.id}
                         >
                           Edit
                         </Button>

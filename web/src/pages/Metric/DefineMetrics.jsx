@@ -102,7 +102,13 @@ export default function DefineMetrics({
               name: data.metric,
               fileId: fileId,
               result: data.result,
-              context: data.context,
+              context: data.context.map(
+                ({ start_time, end_time, ...rest }) => ({
+                  startTime: start_time,
+                  endTime: end_time,
+                  ...rest,
+                })
+              ),
               error: data.error,
               metricId: data.metricId,
             })),
@@ -139,7 +145,7 @@ export default function DefineMetrics({
     }
   };
 
-  const validateMetric = async (metric) => {
+  const validateMetric = async () => {
     try {
       setValidationInProgress(true);
 
@@ -198,7 +204,6 @@ export default function DefineMetrics({
       if (validationValue.length !== metrics.length) {
         throw Error("Validation Failed");
       }
-      console.log("validationValue", validationValue);
       if (
         validationValue
           .map((e) => e.result)

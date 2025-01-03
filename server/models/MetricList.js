@@ -7,7 +7,11 @@ const MetricListSchema = new mongoose.Schema(
       {
         id: { type: Number, required: true }, // Metric ID
         name: { type: String, required: true }, // Metric name
-        type: { type: String, required: true, enum: ["Yes/No", "Numeric"] }, // Metric type
+        type: {
+          type: String,
+          required: true,
+          enum: ["Yes/No", "Numeric", "Text"],
+        }, // Metric type
         description: { type: String }, // Metric description
       },
     ],
