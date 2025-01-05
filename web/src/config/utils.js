@@ -9,6 +9,11 @@ export const getUserId = () => localStorage.getItem("userId");
 export const getServerUrl = () =>
   import.meta.env.VITE_API_URL || "http://localhost:8080";
 
+export const getWebSocketUrl = (token) => {
+  const baseUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
+  return `${baseUrl}?token=${token}`;
+};
+
 // do not change this as it is used in server as well
 
 export const generateUniqueFileName = (fileName, userId) => {

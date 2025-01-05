@@ -1,5 +1,6 @@
 import { toast } from "@/components/hooks/use-toast";
 import React, { createContext, useState, useEffect, useCallback } from "react";
+import { getWebSocketUrl } from "../config/utils";
 
 export const WebSocketContext = createContext(null);
 
@@ -14,7 +15,7 @@ const WebSocketProvider = ({ children, token }) => {
   useEffect(() => {
     if (!token) return;
 
-    const ws = new WebSocket(`ws://localhost:8080?token=${token}`);
+    const ws = new WebSocket(getWebSocketUrl(token));
 
     ws.onopen = () => {
       console.log("[WebSocket] Connected to server");
