@@ -325,13 +325,15 @@ transcriptionQueue.process(async (job) => {
         });
 
         // Uncomment the embedding queue logic if needed
-        // console.log(`[INFO] Enqueuing file for embedding processing: ${fileDetails.fileName}`);
-        // embeddingQueue.add({
-        //   fileId: fileDetails._id,
-        //   filePath: srtFilePath,
-        //   userId: fileDetails.userId,
-        //   fileName: fileDetails.fileName,
-        // });
+        console.log(
+          `[INFO] Enqueuing file for embedding processing: ${fileDetails.fileName}`
+        );
+        embeddingQueue.add({
+          fileId: fileDetails._id,
+          filePath: srtFilePath,
+          userId: fileDetails.userId,
+          fileName: fileDetails.fileName,
+        });
       } else {
         console.error(
           `[ERROR] Transcription failed for file: ${fileDetails.fileName}`
