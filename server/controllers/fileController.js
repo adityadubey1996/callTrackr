@@ -202,16 +202,7 @@ const queueTranscription = async (req, res) => {
     console.log(`[INFO] File found in the database:`, file);
 
     console.log(`[INFO] Adding file to transcription queue: ${fileName}`);
-    addFileToQueue({ ...file.toObject() })
-      .then(() => {
-        console.log(`[SUCCESS] File successfully queued: ${fileName}`);
-      })
-      .catch((error) => {
-        console.error(
-          `[ERROR] Failed to queue file: ${fileName}`,
-          error.message
-        );
-      });
+    await addFileToQueue({ ...file.toObject() });
 
     console.log(
       `[SUCCESS] File successfully added to transcription queue: ${fileName}`

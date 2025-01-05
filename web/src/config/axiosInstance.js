@@ -12,7 +12,7 @@ console.log("process.env", import.meta.env);
 // Create an Axios instance
 const axiosInstance = axios.create({
   baseURL: getServerUrl(), // Replace with your API's base URL
-  timeout: 10000, // Optional timeout
+  timeout: 30000, // Optional timeout
 });
 
 // Add a request interceptor to attach the token
