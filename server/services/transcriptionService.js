@@ -407,12 +407,29 @@ transcriptionQueue.process(async (job) => {
 
 // Add file to transcription queue
 const addFileToQueue = async (fileDetails) => {
+  console.log("[INFO] Starting to add file to transcription queue.");
+
   try {
+    console.log("[INFO] File details to be added:", {
+      id: fileDetails._id,
+      name: fileDetails.fileName,
+      userId: fileDetails.userId,
+    });
+
+    console.log("[INFO] Adding file to transcription queue...");
     await transcriptionQueue.add(fileDetails);
-    console.log(`File added to transcription queue: ${fileDetails.fileName}`);
+
+    console.log(
+      `[SUCCESS] File added to transcription queue: ${fileDetails.fileName}`
+    );
   } catch (error) {
-    console.error("Error adding file to queue:", error.message);
-    throw error;
+    console.error(
+      "[ERROR] Error adding file to transcription queue:",
+      error.message
+    );
+    console.error("[DEBUG] File details that caused the error:", fileDetails);
+
+    throw error; // Rethrow the error to handle it upstream
   }
 };
 
