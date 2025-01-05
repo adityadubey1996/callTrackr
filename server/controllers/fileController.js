@@ -174,25 +174,47 @@ const listFiles = async (req, res) => {
 
 const queueTranscription = async (req, res) => {
   try {
+    console.log("[INFO] Received request to queue transcription.");
+
     const { fileName, fileType, fileSize } = req.body;
     const { id: userId } = req.user;
 
+    console.log("[INFO] Extracted file details from request body:", {
+      fileName,
+      fileType,
+      fileSize,
+    });
+    console.log("[INFO] Extracted user ID from request:", userId);
+
     if (!userId) {
+      console.warn("[WARNING] User ID is missing from the request.");
       return res.status(400).json({ message: "User ID is required." });
     }
 
+    console.log(`[INFO] Searching for file: ${fileName} in the database.`);
     const file = await File.findOne({ fileName: fileName });
+
     if (!file) {
+      console.warn(`[WARNING] File not found: ${fileName}`);
       return res.status(400).json({ message: "File not found" });
     }
-    // Add file to transcription queue
+
+    console.log(`[INFO] File found in the database:`, file);
+
+    console.log(`[INFO] Adding file to transcription queue: ${fileName}`);
     await addFileToQueue({ ...file.toObject() });
 
+    console.log(
+      `[SUCCESS] File successfully added to transcription queue: ${fileName}`
+    );
     res
       .status(201)
       .json({ message: "File added to transcription queue.", file });
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error(
+      "[ERROR] Error queuing file for transcription:",
+      error.message
+    );
     res.status(500).json({ error: "Error uploading file." });
   }
 };
