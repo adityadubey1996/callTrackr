@@ -200,7 +200,10 @@ const ConversationFiles = () => {
                   </Button>
                 </div>
               )}
-              <div className="flex flex-wrap gap-4 mt-4">
+              <div
+                style={{ maxHeight: "60vh", overflow: "scroll" }}
+                className="flex flex-wrap gap-4 mt-4"
+              >
                 {availableFiles.map((file) => (
                   <FileCardForConversation
                     key={file._id}

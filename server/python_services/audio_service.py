@@ -664,20 +664,20 @@ class AudioProcessor:
                 print(f"[CHUNK] Processed chunk {chunk_idx} in batch {batch_index}.")
                 logging.info(f"Processed chunk {chunk_idx} in batch {batch_index}.")
 
-            for meta in metadata_list:
-                # Make a copy of the metadata entry so we don't remove fields from the original
-                meta_copy = dict(meta)
+            # for meta in metadata_list:
+            #     # Make a copy of the metadata entry so we don't remove fields from the original
+            #     meta_copy = dict(meta)
 
-                # Remove the chunk embedding
-                if "chunk_embedding" in meta_copy:
-                    del meta_copy["chunk_embedding"]
+            #     # Remove the chunk embedding
+            #     if "chunk_embedding" in meta_copy:
+            #         del meta_copy["chunk_embedding"]
 
-                # Remove the segment embeddings
-                for seg in meta_copy.get("segments", []):
-                    if "segment_embedding" in seg:
-                        del seg["segment_embedding"]
+            #     # Remove the segment embeddings
+            #     for seg in meta_copy.get("segments", []):
+            #         if "segment_embedding" in seg:
+            #             del seg["segment_embedding"]
 
-                print(meta_copy)
+            #     print(meta_copy)
 
             # Step 4: Save to DB
             try:
