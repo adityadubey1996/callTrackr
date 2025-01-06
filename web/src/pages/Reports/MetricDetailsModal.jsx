@@ -37,6 +37,7 @@ const MetricDetailsModal = ({
         ) : (
           <Accordion type="single" collapsible>
             <div style={{ height: "60vh" }} className="overflow-y-auto">
+              {metric.result}
               {metric.context &&
                 metric.context.map((context, index) => (
                   <AccordionItem key={index} value={`context-${index}`}>
