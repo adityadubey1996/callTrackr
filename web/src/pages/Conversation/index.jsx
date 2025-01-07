@@ -14,12 +14,14 @@ import {
   getConversationDetails,
   sendChatMessage,
   getFileViewURL,
+  getMetricSuggestions,
 } from "../../config/api";
 import { useWebSocket } from "../../hooks/useWebsocket";
 import { toast } from "@/components/hooks/use-toast";
 import FilePreviewModal from "../FileUpload/filePreviewModal";
 import { Menu } from "lucide-react";
 import json5 from "json5";
+
 export default function Home() {
   const {
     refreshFileList: isStaleData,
@@ -40,7 +42,8 @@ export default function Home() {
   const [previewFile, setPreviewFile] = useState(null);
   const [isFileDrawerOpen, setFileDrawerOpen] = useState(false);
   const scrollAreaRef = useRef(null);
-
+  const [isLoadingSuggestion, setIsLoadingSUggestion] = useState(true);
+  const [suggestions, setSuggestions] = useState(false);
   const parseAiResponse = (aiResponse) => {
     try {
       const testing = json5.parse(aiResponse);
@@ -115,7 +118,7 @@ export default function Home() {
     if (!chatResponse) return;
 
     const { action, status, message, data } = chatResponse;
-
+    console.log("chatResponse", chatResponse);
     switch (status) {
       case "In_Progress":
         setIsLoading(true);
@@ -147,11 +150,48 @@ export default function Home() {
     }
   }, [chatResponse]);
 
-  const suggestions = [
-    "Summarize file",
-    "What's the sentiment?",
-    "Find mentions of 'climate change'",
-  ];
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        setIsLoadingSUggestion(true);
+      } catch (e) {
+      } finally {
+        setIsLoadingSUggestion(false);
+      }
+
+      try {
+        if (
+          conversation &&
+          conversation.files &&
+          Array.isArray(conversation.files) &&
+          conversation.files[0]._id
+        ) {
+          setIsLoadingSUggestion(true);
+
+          const { _id: fileId } = conversation.files[0];
+
+          const response = await getMetricSuggestions({ fileId });
+          console.log("respones", response);
+
+          setSuggestions(response.filter((e, index) => index < 3));
+
+          toast({
+            title: "Metric suggestions loaded successfully!",
+            variant: "ghost",
+          });
+        }
+      } catch (err) {
+        console.error("error message", err);
+        toast({
+          title: "Error loading suggestion Metric",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingSUggestion(false);
+      }
+    };
+    fetchSuggestions();
+  }, [conversation]);
 
   const handlePreview = async (file) => {
     // support for single file only
@@ -316,11 +356,15 @@ export default function Home() {
               {isLoading && <MessageLoader />}
             </div>
           </ScrollArea>
-          <SuggestionBar
-            className="p-2"
-            suggestions={suggestions}
-            onSuggestionClick={insertSuggestion}
-          />
+          {isLoadingSuggestion && <>Loading Suggestions</>}
+          {!isLoadingSuggestion && Array.isArray(suggestions) && (
+            <SuggestionBar
+              className="p-2"
+              suggestions={suggestions}
+              onSuggestionClick={insertSuggestion}
+              isLoadingSuggestion={isLoadingSuggestion}
+            />
+          )}
           {isError && isError.message && (
             <Banner
               visible={true}

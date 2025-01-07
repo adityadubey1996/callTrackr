@@ -137,7 +137,10 @@ export default function DefineMetrics({
 
       const data = await response.json();
       setSuggestedMetrics(data);
-      toast.success("Metric suggestions loaded successfully!");
+      toast({
+        title: "Metric suggestions loaded successfully!",
+        variant: "ghost",
+      });
     } catch (err) {
       setError("Failed to fetch metric suggestions. Please retry.");
     } finally {
