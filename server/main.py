@@ -30,11 +30,16 @@ logging.basicConfig(
 
 
 load_dotenv()
+
+
 # python3 /Users/adityadubey/calltrackr/server/main.py --chunking /Users/adityadubey/calltrackr/server/transcriptions/testing_sales_call_20241231_222320.srt --fileId 6774212334d030b19ef2c385
 
 # python3 /Users/adityadubey/calltrackr/server/main.py --metric_verify '{"name": "How many time the pricing was mentioned?", "type": "Yes/No"}'
 
 # python3 /Users/adityadubey/callTrackr/server/main.py  --query 'summarize the file' --conversation_id '677b1326696ccdedabb29486'
+
+#  python3 /Users/adityadubey/callTrackr/server/main.py --process_metric '{"id":1736337174003,"name":"Keyword Mentions: delhi","type":"Numeric","description":"Count how many times the keyword 'delhi' was mentioned (16 mentions)."}' --fileId '["677af6638cc87c193329750e"]'
+
 class MainProcessor:
     def __init__(self):
         logging.info("Initializing MainProcessor.")
