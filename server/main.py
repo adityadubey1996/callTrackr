@@ -33,6 +33,8 @@ load_dotenv()
 # python3 /Users/adityadubey/calltrackr/server/main.py --chunking /Users/adityadubey/calltrackr/server/transcriptions/testing_sales_call_20241231_222320.srt --fileId 6774212334d030b19ef2c385
 
 # python3 /Users/adityadubey/calltrackr/server/main.py --metric_verify '{"name": "How many time the pricing was mentioned?", "type": "Yes/No"}'
+
+# python3 /Users/adityadubey/callTrackr/server/main.py  --query 'summarize the file' --conversation_id '677b1326696ccdedabb29486'
 class MainProcessor:
     def __init__(self):
         logging.info("Initializing MainProcessor.")
@@ -232,8 +234,12 @@ if __name__ == "__main__":
 
         if args.process_metric:
             try:
+                print('metric',args.process_metric)
+                print('file_ids',args.fileId)
                 file_ids = json.loads(args.fileId)  # Parse file IDs as a list of strings
+                print('file_ids after', file_ids)
                 metric = json.loads(args.process_metric)
+                print('process_metric after', metric)
                   # Ensure file_ids is a list
                 if not isinstance(file_ids, list) or not all(isinstance(fid, str) for fid in file_ids):
                     raise ValueError("file_ids must be a list of strings.")

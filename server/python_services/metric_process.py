@@ -468,6 +468,22 @@ class MetricProcessor:
             }
 
         return file_results
+    
+    def aggregate_results(self, results, metric_type):
+        logging.debug(f"Aggregating results for metric_type='{metric_type}' with results={results}.")
+        print(f"Aggregating results for metric_type='{metric_type}' with results={results}.")
+
+        if metric_type.lower() == "yes/no":
+            yes_count = sum(1 for r in results if r.lower() == "yes")
+            no_count = sum(1 for r in results if r.lower() == "no")
+            return "Yes" if yes_count >= no_count else "No"
+        elif metric_type.lower() == "numeric":
+            return sum(results)
+        elif metric_type.lower() == "text":
+            return " ".join(results)
+        else:
+            raise ValueError("Unsupported metric type.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a metric for a file.")
