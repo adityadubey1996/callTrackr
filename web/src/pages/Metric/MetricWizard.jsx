@@ -20,7 +20,7 @@ import {
 import SelectFiles from "./SelectFiles";
 import PreviewData from "./PreviewData";
 import DefineMetrics from "./DefineMetrics";
-import FinalReport from "./FinalReport";
+import FinalReport from "./Finalreport";
 import {
   getAvailableFiles,
   deleteFile,
