@@ -35,6 +35,7 @@ import Banner from "../Conversation/Banner";
 const steps = ["Select Files", "Define Metrics"];
 
 const MetricsWizard = ({
+  showDialog,
   selectedFiles,
   setSelectedFiles,
   metrics,
@@ -49,10 +50,16 @@ const MetricsWizard = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedMetricList, setSelectedMetricList] = useState(null);
   const [loadingMessages, setLoadingMessages] = useState([]);
-  const [processing, setProcessing] = useState(true);
+  const [processing, setProcessing] = useState(false);
   const [metricProcessionResult, setMetricProcessinResult] = useState([]);
   const [onFinishLoading, setOnFininshLoading] = useState(false);
+  console.log("metricProcessionResult", metricProcessionResult);
 
+  //   useEffect(() => {
+  // if(!showDialog){
+
+  // }
+  //   },[showDialog])
   const handleFileSelection = (fileId) => {
     setSelectedFiles((prev) =>
       prev.includes(fileId)
@@ -111,7 +118,7 @@ const MetricsWizard = ({
         break;
 
       case "Completed":
-        console.log("data from COmpleted from metricProcessing", data);
+        console.log("data from Completed from metricProcessing", data);
         setLoadingMessages((prev) => [...prev, message]);
         setMetricProcessinResult((prev) => {
           return [

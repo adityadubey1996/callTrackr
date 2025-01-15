@@ -75,46 +75,103 @@ const Reports = () => {
   const getSetArrayOfFileIds = (metricResultsParams) =>
     Array.from(new Set(metricResultsParams.map((e) => e.fileId)));
 
+  function transformMetricResults(
+    metricResults,
+    metrics,
+    availableFiles,
+    destructureUniqueFileName
+  ) {
+    // 1. Group metricResults by resultId using a Map
+    const resultByResultIdMap = new Map();
+
+    metricResults.forEach((result) => {
+      // If the map already has an entry for this resultId, push onto it; otherwise, create a new array
+      if (!resultByResultIdMap.has(result.resultId)) {
+        resultByResultIdMap.set(result.resultId, []);
+      }
+      resultByResultIdMap.get(result.resultId).push(result);
+    });
+
+    // This will be our final returned value
+    let transformedData = [];
+
+    // 2. Iterate over each group of results that share the same resultId
+    resultByResultIdMap.forEach((resultsInGroup) => {
+      // We assume all entries in this group share the same metricListId
+      const metricListId = resultsInGroup[0].metricListId;
+      const foundMetricList = metrics.find((m) => m.id === metricListId);
+
+      // If we cannot find the corresponding metric list, skip it
+      if (!foundMetricList) return;
+
+      // Create an object to hold data for this metric list
+      let metricListObject = {
+        metricListId: foundMetricList.id,
+        metricListName: `Metric List ${foundMetricList.id}`,
+        fileResults: [],
+      };
+
+      // 3. Identify unique file IDs from these results
+      const fileIdsInGroup = resultsInGroup.map((r) => r.fileId);
+
+      // Filter the availableFiles to only those used by this group
+      const relevantFiles = availableFiles.filter((file) =>
+        fileIdsInGroup.includes(file._id)
+      );
+
+      // 4. Build the file-level results array
+      const fileResults = relevantFiles.map((file) => {
+        // Filter the metric results specific to this file
+        const resultsForFile = resultsInGroup.filter(
+          (res) => res.fileId === file._id
+        );
+
+        // Map over the resultsForFile to extract the needed details
+        const metricResultsForFile = resultsForFile.map((res) => {
+          // Find metric details within foundMetricList
+          const metricDetail = foundMetricList.metrics.find(
+            (md) => md.id === res.metricId
+          );
+
+          return {
+            metricId: metricDetail?.id,
+            name: metricDetail?.name,
+            result: res.result,
+            error: res.error,
+            context: res.context,
+          };
+        });
+
+        // Return a single object for this file
+        return {
+          fileId: file._id,
+          fileName: destructureUniqueFileName(file.fileName)?.originalFileName,
+          metricResults: metricResultsForFile,
+        };
+      });
+
+      // Attach file-level info to our metric list object
+      metricListObject.fileResults = fileResults;
+
+      // Finally, push this object into our aggregated list
+      transformedData.push(metricListObject);
+    });
+
+    return transformedData;
+  }
+
   const groupedResults = useMemo(() => {
     if (!availableFiles || !metricResults || !Array.isArray(metricResults)) {
       return [];
     }
-
-    return metrics.map((metricList) => {
-      // Group files and their corresponding metric results for this metric list
-      const fileResults = availableFiles
-        .filter((file) => metricList.fileIds.includes(file._id))
-        .map((file) => {
-          // Get metric results for this file and metric list
-          const metricResultsForFile = metricList.metrics.map((metric) => {
-            const resultEntry = metricResults.find(
-              (res) => res.fileId === file._id && res.metricId === metric.id
-            );
-
-            return {
-              metricId: metric.id,
-              name: metric.name,
-              result: resultEntry?.result ?? "N/A",
-              error: resultEntry?.error ?? null,
-              context: resultEntry?.context || [],
-            };
-          });
-
-          return {
-            fileId: file._id,
-            fileName: destructureUniqueFileName(file.fileName).originalFileName,
-            metricResults: metricResultsForFile,
-          };
-        });
-
-      return {
-        metricListId: metricList.id,
-        metricListName: `Metric List ${metricList.id}`, // Optional name
-        fileResults,
-      };
-    });
+    return transformMetricResults(
+      metricResults,
+      metrics,
+      availableFiles,
+      destructureUniqueFileName
+    );
   }, [metricResults, availableFiles, metrics]);
-  console.log("groupedResults from index", groupedResults);
+  // console.log("groupedResults from index", groupedResults);
 
   return (
     <div className="h-full w-full">
@@ -145,6 +202,7 @@ const Reports = () => {
               <DialogTitle>Create Dashboard</DialogTitle>
             </DialogHeader>
             <MetricsWizard
+              showDialog={showDialog}
               selectedFiles={selectedFiles}
               setSelectedFiles={setSelectedFiles}
               metrics={metrics}

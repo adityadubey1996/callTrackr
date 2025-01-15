@@ -7,6 +7,7 @@ const MetricResultSchema = new mongoose.Schema(
     name: { type: String, required: true }, // Metric name
     fileId: { type: String, required: true }, // Associated file ID
     result: { type: mongoose.Schema.Types.Mixed, default: null }, // Result value (e.g., Yes/No or Number), null if error
+    resultId: { type: String, required: true, unique: true },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // Reference to the User model

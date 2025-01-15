@@ -102,7 +102,7 @@ export default function DefineMetrics({
               name: data.metric,
               fileId: fileId,
               result: data.result,
-              context: data.context.map(
+              context: data?.context?.map(
                 ({ start_time, end_time, ...rest }) => ({
                   startTime: start_time,
                   endTime: end_time,
@@ -199,6 +199,7 @@ export default function DefineMetrics({
 
   const processMetrics = async () => {
     try {
+      setMetricProcessinResult([]);
       setLoadingMessages([]);
       setProcessing(true);
       setProgress({});
@@ -207,24 +208,24 @@ export default function DefineMetrics({
       if (validationValue.length !== metrics.length) {
         throw Error("Validation Failed");
       }
-      if (
-        validationValue
-          .map((e) => e.result)
-          .map((e1) => e1.includes("invalid"))
-          .find((e2) => e2)
-      ) {
-        isError = true;
-        setProcessing(false);
-        toast({
-          title: "Kindly rectify the metrics",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (isError) {
-        throw Error("Validation Failed");
-      }
+      // if (
+      //   validationValue
+      //     .map((e) => e.result)
+      //     .map((e1) => e1.includes("invalid"))
+      //     .find((e2) => e2)
+      // ) {
+      //   isError = true;
+      //   setProcessing(false);
+      //   toast({
+      //     title: "Kindly rectify the metrics",
+      //     variant: "destructive",
+      //   });
+      //   return;
+      // }
+      //TODO: skipping this for now
+      // if (isError) {
+      //   throw Error("Validation Failed");
+      // }
 
       await processMetric({ fileIds: selectedFiles, metrics });
     } catch (err) {

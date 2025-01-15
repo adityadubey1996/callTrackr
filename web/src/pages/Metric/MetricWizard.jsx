@@ -138,28 +138,29 @@ export default function MetricsWizard({ setCreateWizard }) {
         });
         return false;
       }
+      console.log("metrics", metrics);
       if (
         metrics.map((e) => e.type).filter((e1) => e1).length !== metrics.length
       ) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Kindly Validate the Metric",
+          description: "Kindly Validate the Metric, check if type is present",
         });
         return false;
       }
-      if (
-        Object.entries(validationState).some(
-          ([metricId, value]) => value.result === "invalid"
-        )
-      ) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Kindly rectify the invalid metric",
-        });
-        return false;
-      }
+      // if (
+      //   Object.entries(validationState).some(
+      //     ([metricId, value]) => value.result === "invalid"
+      //   )
+      // ) {
+      //   toast({
+      //     variant: "destructive",
+      //     title: "Error",
+      //     description: "Kindly rectify the invalid metric",
+      //   });
+      //   return false;
+      // }
     }
     return true;
   };

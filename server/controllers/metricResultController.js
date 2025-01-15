@@ -19,6 +19,7 @@ const createMetricList = async (req, res) => {
 
     const metricList = new MetricList({ id, metrics, fileIds, userId });
     await metricList.save();
+    const resultId = uuidv4();
 
     // Handle results if provided
     if (results && results.length > 0) {
@@ -27,6 +28,7 @@ const createMetricList = async (req, res) => {
           userId,
           metricListId: metricList.id,
           metricId: result.id,
+          resultId,
           ...result,
         });
         await metricResult.save();
@@ -87,11 +89,13 @@ const addResultsToMetricList = async (req, res) => {
     if (!metricList) {
       return res.status(404).json({ message: "MetricList not found" });
     }
+    const resultId = uuidv4();
 
     // Save each result
     for (const result of results) {
       const metricResult = new MetricResult({
         metricListId: metricListId,
+        resultId,
         ...result,
       });
       await metricResult.save();
@@ -246,6 +250,7 @@ const createMetricReusltByMetric = async (req, res) => {
         .status(404)
         .json({ message: "MetricList not found for the given ID." });
     }
+    const resultId = uuidv4();
 
     if (results && results.length > 0) {
       for (const result of results) {
@@ -253,6 +258,7 @@ const createMetricReusltByMetric = async (req, res) => {
           userId,
           metricListId: metricList.id,
           metricId: result.id,
+          resultId: resultId,
           ...result,
         });
         await metricResult.save();
