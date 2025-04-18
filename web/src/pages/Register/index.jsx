@@ -59,7 +59,7 @@ export function RegisterForm() {
   async function onSubmit(values) {
     try {
       console.log("values from onSubmit", values);
-      // await signup(values);
+      await signup(values);
       toast({
         title: "Registration Successful",
         description:
