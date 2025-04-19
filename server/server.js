@@ -14,7 +14,7 @@
 
 // server.js
 
-// 1) Prepend pyenv shims just in case
+// 1) Ensure pyenv shims & bin are at the front of PATH
 const os = require("os");
 const homedir = os.homedir();
 process.env.PATH = [
@@ -28,33 +28,36 @@ const { execSync } = require("child_process");
 function debug(cmd) {
   try {
     const out = execSync(cmd, { encoding: "utf8" }).trim();
-    console.log(`[DEBUG] $ ${cmd} →\n${out}`);
+    console.log(`[DEBUG] $ ${cmd} →\n${out}\n`);
   } catch (err) {
-    console.error(`[DEBUG-ERROR] $ ${cmd} →\n${err.message}`);
+    console.error(`[DEBUG-ERROR] $ ${cmd} →\n${err.message}\n`);
   }
 }
 
-// 3) Dump env vars
+// 3) Dump environment
 console.log("[DEBUG] process.env.PATH =", process.env.PATH);
 console.log("[DEBUG] process.env.PYENV_ROOT =", process.env.PYENV_ROOT);
 
-// 4) Find every python on PATH
-debug("which -a python");
+// 4) List all python3 on PATH
 debug("which -a python3");
 
-// 5) Show the first python3 version
-debug("python3 --version");
-
-// 6) Try importing moviepy.editor
-debug(`python3 - <<'PY'
-try:
-  import moviepy.editor
-  print("moviepy.editor OK")
-except Exception as e:
-  print("moviepy.editor ERROR:", e)
+// 5) Inside Python: report sys.executable & version
+debug(`python3 - << 'PY'
+import sys
+print("sys.executable:", sys.executable)
+print("sys.version:", sys.version.replace("\\n"," "))
 PY`);
 
-// 7) Start HTTP + WebSocket server
+// 6) Try to import moviepy.editor
+debug(`python3 - << 'PY'
+try:
+    import moviepy.editor
+    print("moviepy.editor OK")
+except Exception as e:
+    print("moviepy.editor ERROR:", e)
+PY`);
+
+// 7) Now start HTTP + WebSocket server
 const http = require("http");
 const app = require("./app");
 const { initializeWebSocket } = require("./services/websocketService");
