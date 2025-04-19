@@ -12,10 +12,10 @@ class StorageSingleton {
     if (!StorageSingleton.instance) {
       const keyFilenamePath = path.join(
         __dirname,
-        "../config/airy-digit-441616-c2-e40526e81546.json"
+        "../config/spartan-setting-455409-f3-ab2d9ba9c529.json"
       );
       const storage = new Storage({ keyFilename: keyFilenamePath });
-      const bucket = storage.bucket("files_calltrackr");
+      const bucket = storage.bucket("files_calltrackr1");
 
       StorageSingleton.instance = { storage, bucket };
     }

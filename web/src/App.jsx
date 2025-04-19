@@ -12,7 +12,7 @@ import FileUpload from "./pages/FileUpload";
 import Metrics from "./pages/Metric";
 import Reports from "./pages/Reports";
 import { LoginForm } from "./pages/Login";
-import LandingPage from "./pages/LandingPage";
+import LandingPage from "./pages/LandingPage/LandingPage";
 import { RegisterForm } from "./pages/Register";
 import { Button } from "@/components/components/ui/button";
 import { setNavigate } from "./services/navigationService";
