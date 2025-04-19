@@ -2,6 +2,9 @@
 
 import os
 import sys
+project_root = os.path.dirname(__file__)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 import json
 import argparse
 from dotenv import load_dotenv
@@ -22,9 +25,7 @@ from python_services.metric_process import MetricProcessor
 # from config import Config
 import logging
 
-project_root = os.path.dirname(__file__)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+
 
 # Configure logging
 logging.basicConfig(
