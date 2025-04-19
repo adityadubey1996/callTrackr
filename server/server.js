@@ -15,7 +15,7 @@
 
 // server.js
 
-// 1) Ensure pyenv shims are in PATH
+// 1) Prepend pyenv shims so that `python3` hopefully resolves correctly
 const os = require("os");
 const homedir = os.homedir();
 process.env.PATH = [
@@ -24,8 +24,10 @@ process.env.PATH = [
   process.env.PATH
 ].join(":");
 
-// 2) Debug helper
+// 2) Bring in execSync for our debug checks
 const { execSync } = require("child_process");
+
+// Helper to run a command and log cleanly
 function debug(cmd) {
   try {
     const out = execSync(cmd, { encoding: "utf8" }).trim();
@@ -35,9 +37,16 @@ function debug(cmd) {
   }
 }
 
-// 3) Run our sanity checks before starting the server
-debug("which python3");
+// 3) Dump out the PATH so you see exactly what PM2 inherited
+console.log(`[DEBUG] process.env.PATH = ${process.env.PATH}`);
+
+// 4) Show every python3 on the PATH
+debug("which -a python3");
+
+// 5) Check the version of whichever python3 is first
 debug("python3 --version");
+
+// 6) Try importing moviepy.editor
 debug(`python3 - <<'PY'
 try:
   import moviepy.editor
@@ -46,14 +55,13 @@ except Exception as e:
   print("moviepy.editor ERROR:", e)
 PY`);
 
-// 4) Now start the HTTP + WebSocket server
+// 7) Now start your HTTP + WebSocket server
 const http = require("http");
 const app = require("./app");
 const { initializeWebSocket } = require("./services/websocketService");
 
 const PORT = process.env.PORT || 8080;
 const server = http.createServer(app);
-
 initializeWebSocket(server);
 
 server.listen(PORT, () => {
