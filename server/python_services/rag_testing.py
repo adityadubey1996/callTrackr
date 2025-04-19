@@ -1,7 +1,7 @@
 import os
 import logging
-# from bson import ObjectId
-from bson.objectid import ObjectId
+from bson import ObjectId
+# from bson.objectid import ObjectId
 
 from sentence_transformers import SentenceTransformer, util
 from pymongo import MongoClient

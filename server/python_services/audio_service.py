@@ -275,8 +275,7 @@ from datetime import datetime
 from srt import parse
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
-# from bson import ObjectId
-from bson.objectid import ObjectId
+from bson import ObjectId
 
 # Zero-shot classification (for topics)
 from transformers import pipeline as hf_pipeline

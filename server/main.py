@@ -1,4 +1,15 @@
+import sys, os
 
+# Remove the project root (and thus node_modules) from module search
+project_root = os.getcwd()
+if project_root in sys.path:
+    sys.path.remove(project_root)
+
+# Or more surgically, drop any node_modules/bson path
+sys.path = [
+    p for p in sys.path
+    if not p.startswith(os.path.join(project_root, "node_modules", "bson"))
+]
 
 import os
 import json
