@@ -47,6 +47,14 @@ app.use(express.json({ limit: "50mb" })); // Adjust limit as needed
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(morgan("dev"));
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use("/auth", authRoutes);
 app.use("/files", fileRoutes);
