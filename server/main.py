@@ -2,6 +2,14 @@
 
 import os
 import sys
+# project_root = os.path.dirname(__file__)
+# if project_root not in sys.path:
+#     sys.path.insert(0, project_root)
+
+# Remove any node_modules paths so they won’t shadow real packages
+sys.path[:] = [p for p in sys.path
+               if not os.path.abspath(p).endswith("node_modules")]
+# Now add your project root
 project_root = os.path.dirname(__file__)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
